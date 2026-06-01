@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Для моей любимой</title>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background-color: #ffe5ec;
+            font-family: 'Montserrat', 'Segoe UI', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #layer-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .falling-item {
+            position: absolute;
+            top: -50px;
+            animation: fall linear infinite;
+        }
+
+        @keyframes fall {
+            0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 0; }
+            10% { opacity: 0.85; }
+            90% { opacity: 0.85; }
+            100% { transform: translateY(110vh) rotate(360deg) scale(1.2); opacity: 0; }
+        }
+
+        .welcome-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #ffe5ec;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+        }
+
+        .envelope-btn {
+            background: white;
+            padding: 20px 40px;
+            border-radius: 50px;
+            font-size: 1.5rem;
+            color: #ff4d6d;
+            font-weight: bold;
+            border: 3px solid #ff4d6d;
+            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(255, 77, 109, 0.3);
+            transition: transform 0.2s, box-shadow 0.2s;
+            animation: pulse 1.5s infinite;
+        }
+
+        .envelope-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 30px rgba(255, 77, 109, 0.5);
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+        }
+
+        .card {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 40px 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(255, 182, 193, 0.4);
+            z-index: 10;
+            width: 90%;
+            max-width: 480px;
+            min-height: 380px;
+            display: none; 
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+            border: 2px solid white;
+            opacity: 0;
+            will-change: transform, opacity;
+        }
+
+        .card-show {
+            animation: fadeInCard 0.5s ease forwards;
+        }
+
+        @keyframes fadeInCard {
+            from { opacity: 0; transform: scale(0.9); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .shake {
+            animation: shakeAnim 0.3s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes shakeAnim {
+            10%, 90% { transform: translate3d(-4px, 0, 0); }
+            20%, 80% { transform: translate3d(4px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-8px, 0, 0); }
+            40%, 60% { transform: translate3d(8px, 0, 0); }
+        }
+
+        .counter-badge {
+            font-size: 0.95rem;
+            color: #ff758f;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 6px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            color: #ff4d6d;
+            font-size: 1.9rem;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+            line-height: 1.3;
+            width: 100%;
+            margin-bottom: 20px;
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            height: 140px;
+            position: relative;
+        }
+
+        button {
+            font-weight: bold;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #btn-yes {
+            padding: 12px 35px;
+            font-size: 1.2rem;
+            background-color: #ff4d6d;
+            color: white;
+            z-index: 11;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), background-color 0.2s; 
+        }
+
+        #btn-yes:hover {
+            background-color: #ff758f;
+        }
+
+        #btn-no {
+            padding: 12px 35px;
+            font-size: 1.2rem;
+            background-color: #6c757d;
+            color: white;
+            z-index: 15;
+        }
+
+        .shock-text {
+            position: fixed;
+            font-size: 3.5rem;
+            font-weight: 900;
+            color: #ff003c;
+            text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 15px 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            z-index: 200;
+            display: none;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.4);
+            text-align: center;
+            pointer-events: none;
+        }
+
+        @keyframes popIn {
+            from { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+            to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .success-screen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 20;
+            padding: 20px;
+            width: 100vw;
+        }
+
+        /* Новый контейнер для одной фотки и сердечка */
+        .single-layout {
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .center-photo {
+            width: 300px;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 24px;
+            opacity: 0.55; 
+            box-shadow: 0 10px 25px rgba(255, 77, 109, 0.2);
+        }
+
+        .heart-overlay {
+            position: absolute;
+            font-size: 140px;
+            color: #ff4d6d;
+            opacity: 0.55;
+            animation: heartbeat 1.2s infinite;
+            text-shadow: 0 8px 25px rgba(255, 77, 109, 0.4);
+        }
+
+        .success-title {
+            color: #ff4d6d;
+            font-size: 3.5rem;
+            font-weight: 900;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .success-sub {
+            font-size: 1.2rem;
+            color: #ff758f;
+            margin-top: 15px;
+            font-weight: bold;
+            text-align: center;
+            line-height: 1.4;
+        }
+
+        @keyframes heartbeat {
+            0%, 100% { transform: scale(1); }
+            20%, 60% { transform: scale(1.15); }
+            40% { transform: scale(1.05); }
+        }
+
+        @media (max-width: 768px) {
+            .center-photo { width: 200px; height: 280px; }
+            .heart-overlay { font-size: 80px; }
+            .success-title { font-size: 2.5rem; }
+            .success-sub { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="welcome-screen" id="welcome-screen">
+        <button class="envelope-btn" id="start-btn">Открыть письмо ✉</button>
+    </div>
+
+    <div class="shock-text" id="shock-text">ахуевшая</div>
+
+    <div id="layer-container"></div>
+
+    <div class="card" id="main-card">
+        <div class="counter-badge" id="dodge-counter">Уворотов от любви: 0</div>
+        <h1 id="question">Ты будешь моей любовью?</h1>
+        <div class="btn-group" id="btn-zone">
+            <button id="btn-yes">Да</button>
+            <button id="btn-no">Нет</button>
+        </div>
+    </div>
+
+    <div class="success-screen" id="success-screen">
+        <div class="single-layout">
+            <img src="./MeAndHer.jpg" alt="Мы" class="center-photo">
+            <div class="heart-overlay">❤</div>
+        </div>
+        <div class="success-title">Ура!</div>
+        <div class="success-sub" id="final-stats"></div>
+    </div>
+
+    <script>
+        const items = ['🐱', '🧸', '💖', '✨', '💝', '🌸'];
+        const container = document.getElementById('layer-container');
+        let heartTrailActive = false;
+
+        // Создаем сердечко-пузырек для шлейфа
+        function createBubbleHeart(x, y) {
+            const heart = document.createElement('div');
+            heart.innerText = '❤️';
+            heart.style.position = 'fixed';
+            heart.style.left = x + 'px';
+            heart.style.top = y + 'px';
+            heart.style.fontSize = Math.random() * 15 + 15 + 'px';
+            heart.style.pointerEvents = 'none';
+            heart.style.zIndex = '1000';
+            document.body.appendChild(heart);
+
+            heart.animate([
+                { transform: 'translateY(0) scale(1)', opacity: 1 },
+                { transform: 'translateY(-100px) scale(0)', opacity: 0 }
+            ], {
+                duration: 1500,
+                easing: 'ease-out'
+            }).onfinish = () => heart.remove();
+        }
+
+        // Шлейф за курсором
+        document.addEventListener('mousemove', (e) => {
+            if (heartTrailActive && Math.random() > 0.7) {
+                createBubbleHeart(e.clientX, e.clientY);
+            }
+        });
+
+        document.addEventListener('touchmove', (e) => {
+            if (heartTrailActive) {
+                createBubbleHeart(e.touches[0].clientX, e.touches[0].clientY);
+            }
+        });
+
+        function spawnItem() {
+            const item = document.createElement('div');
+            item.className = 'falling-item';
+            item.innerText = items[Math.floor(Math.random() * items.length)];
+            item.style.left = Math.random() * 95 + 'vw';
+            const duration = Math.random() * 2 + 2; 
+            item.style.animationDuration = duration + 's';
+            item.style.fontSize = Math.random() * 20 + 25 + 'px';
+            container.appendChild(item);
+            setTimeout(() => item.remove(), duration * 1000);
+        }
+
+        const welcomeScreen = document.getElementById('welcome-screen');
+        const startBtn = document.getElementById('start-btn');
+        const btnYes = document.getElementById('btn-yes');
+        const btnNo = document.getElementById('btn-no');
+        const mainCard = document.getElementById('main-card');
+        const successScreen = document.getElementById('success-screen');
+        const questionText = document.getElementById('question');
+        const dodgeCounterText = document.getElementById('dodge-counter');
+        const finalStats = document.getElementById('final-stats');
+        const shockText = document.getElementById('shock-text');
+
+        const bgMusic = new Audio("./MyLove.mp3");
+        bgMusic.loop = true; 
+        bgMusic.currentTime = 55; 
+        bgMusic.volume = 0; 
+
+        const winSound = new Audio("./win.mp3");
+        winSound.volume = 0.7; 
+
+        const MAX_VOLUME = 0.5;
+        let dodgeCount = 0;
+        let yesScale = 1; 
+        let startTime; 
+        let isDetached = false;
+
+        startBtn.addEventListener('click', () => {
+            if (navigator.vibrate) navigator.vibrate(100);
+            bgMusic.play().catch(e => console.log(e));
+            
+            let vol = 0;
+            let fadeInterval = setInterval(() => {
+                if (vol < MAX_VOLUME) {
+                    vol += 0.05;
+                    bgMusic.volume = vol;
+                } else {
+                    clearInterval(fadeInterval); 
+                }
+            }, 200);
+         
+            startTime = Date.now();
+            setInterval(spawnItem, 120);
+
+            welcomeScreen.style.opacity = '0';
+            welcomeScreen.style.transform = 'scale(1.2)';
+            setTimeout(() => {
+                welcomeScreen.style.display = 'none';
+                mainCard.style.display = 'flex';
+                mainCard.classList.add('card-show');
+            }, 500);
+        });
+
+        function teleportButton(e) {
+            if (e.type === 'mouseover' && 'ontouchstart' in window) return;
+
+            // Проверка: если 20 уворотов, скрываем кнопку и выходим из функции
+            if (dodgeCount >= 20) {
+                btnNo.style.display = 'none';
+                return;
+            }
+
+            if (!isDetached) {
+                // ... (остальной код инициализации isDetached остается прежним)
+                const rect = btnNo.getBoundingClientRect();
+                btnNo.style.position = 'fixed';
+                btnNo.style.left = rect.left + 'px';
+                btnNo.style.top = rect.top + 'px';
+                document.body.appendChild(btnNo);
+                btnNo.style.transition = 'left 0.15s ease, top 0.15s ease';
+                isDetached = true;
+            }
+
+            dodgeCount++;
+            dodgeCounterText.innerText = `Уворотов от любви: ${dodgeCount}`;
+            mainCard.classList.add('shake');
+            setTimeout(() => mainCard.classList.remove('shake'), 300);
+            
+            yesScale += 0.15;
+            btnYes.style.transform = `scale(${yesScale})`;
+
+            // ... (логика фраз остается как была)
+            if (dodgeCount === 15) {
+                questionText.innerText = "АХУЕВШАЯ";
+                shockText.style.display = 'block';
+                setTimeout(() => {
+                    shockText.style.display = 'none';
+                    questionText.innerText = "Ты БУДЕШЬ моей любовью";
+                }, 1000);
+            } else if (dodgeCount === 10) {
+                questionText.innerText = "Я щас всё запомню";
+            } else if (dodgeCount === 5) {
+                questionText.innerText = "Е";
+            }
+
+            const padding = 30;
+            let randomX = Math.floor(Math.random() * (window.innerWidth - btnNo.offsetWidth - padding * 2)) + padding;
+            let randomY = Math.floor(Math.random() * (window.innerHeight - btnNo.offsetHeight - padding * 2)) + padding;
+            btnNo.style.left = randomX + 'px';
+            btnNo.style.top = randomY + 'px';
+        }
+
+        btnNo.addEventListener('mouseover', teleportButton);
+        btnNo.addEventListener('click', teleportButton);
+
+        btnYes.addEventListener('click', () => {
+            if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
+            
+            heartTrailActive = true;
+            const totalTime = Math.round((Date.now() - startTime) / 1000);
+            winSound.play().catch(e => console.log(e));
+            
+            mainCard.style.display = 'none'; 
+            btnNo.style.display = 'none'; 
+            successScreen.style.display = 'flex'; 
+            
+            finalStats.innerHTML = `тебе понадобилось <b>${dodgeCount}</b> попыток и <b>${totalTime}</b> сек,<br>чтобы принять неизбежное)`;
+        });
+    </script>
+</body>
+</html>
